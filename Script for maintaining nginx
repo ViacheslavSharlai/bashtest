@@ -2,21 +2,66 @@
 
 sudo apt update
    
-mysite=/tmp/nginx.conf
-nginxconf=/etc/nginx/nginx.conf
+myconf="/tmp/nginx.conf"
+nginxconf="/etc/nginx/nginx.conf"
 
-apt install nginx
-cp $mysite $nginxconf
+apt install nginx -y
 
-sudo systemctl start nginx
-
-sudo systemctl enable nginx
+################################################
 
 status() {
 	if [ -e /var/run/nginx.pid ]; 
   then echo "nginx is running";
   fi
-}  
-status
+}
 
+################################################
 
+config() {
+cp $myconf $nginxconf
+sudo systemctl reload nginx
+
+nginx -t 2> /dev/null
+if [[ $? -eq 0 ]]; then
+echo "Config OK"
+fi
+}
+
+################################################
+
+service="nginx"
+
+service() {
+if pgrep -x "$service" >/dev/null
+then
+    echo "$service is running"
+else
+    echo "$service stopped"
+    sudo systemctl start nginx
+    echo "Status: @status" 
+fi
+}
+
+################################################
+tries=2
+time=1
+
+restart() {
+if [[ @status -qe 0 ]] then
+   echo "OK"
+   
+else [[ @status -ne 0 ]] then
+
+for (( i=1; i<=$tries; i++ )) do
+        echo "try to restart"
+	sleep ${time}m;
+        service; config;
+done
+fi
+}
+################################################
+#cron
+
+SCRIPT=$(readlink -f $0)
+JOB="*/5 * * * * sudo $SCRIPT"
+grep -e "$JOB" /etc/crontab
