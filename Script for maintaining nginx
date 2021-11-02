@@ -1,0 +1,22 @@
+#!/bin/bash
+
+sudo apt update
+   
+mysite=/tmp/nginx.conf
+nginxconf=/etc/nginx/nginx.conf
+
+apt install nginx
+cp $mysite $nginxconf
+
+sudo systemctl start nginx
+
+sudo systemctl enable nginx
+
+status() {
+	if [ -e /var/run/nginx.pid ]; 
+  then echo "nginx is running";
+  fi
+}  
+status
+
+
